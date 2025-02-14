@@ -36,6 +36,7 @@ python -m venv venv
 source venv/bin/activate  # Untuk macOS/Linux
 venv\Scripts\activate  # Untuk Windows
 
+pip freeze > requirements.txt
 pip install -r requirements.txt
 ```
 
