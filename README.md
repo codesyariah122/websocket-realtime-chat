@@ -61,7 +61,8 @@ Jika ingin berkontribusi, silakan fork repo ini dan buat pull request.
 📧 Kontak
 
 📌 Author: Puji Ermanto  
-📩 Email: pujiermanto@gmail.com  
+📩 Email: pujiermanto@gmail.com
+
 <a href='https://ko-fi.com/J3J81AEG3V' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
 ---
