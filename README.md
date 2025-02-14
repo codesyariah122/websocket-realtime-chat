@@ -23,6 +23,12 @@ Aplikasi **Realtime Chat** menggunakan **Python Flask** dan **WebSockets** (Flas
 
 ### 1️⃣ Clone Repository
 
+#### Check packages on vps server or cloud host
+
+```
+apt install -y libcairo2-dev pkg-config python3-dev
+```
+
 ```bash
 git clone https://github.com/username/realtime-chat.git
 cd realtime-chat
