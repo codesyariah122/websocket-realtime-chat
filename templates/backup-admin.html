@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        background: radial-gradient(circle, #1a1a2e, #0f3460);
+        font-family: "Poppins", sans-serif;
+      }
+      .chat-box {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(15px);
+        border-radius: 15px;
+        padding: 15px;
+        width: 90%;
+        max-width: 500px;
+        height: 300px;
+        overflow-y: auto;
+        margin: auto;
+        box-shadow: 0px 0px 20px rgba(0, 183, 255, 0.5);
+      }
+      .message {
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 8px;
+        max-width: 80%;
+        word-wrap: break-word;
+      }
+      .admin {
+        background: linear-gradient(135deg, #ff416c, #ff4b2b);
+        color: white;
+        text-align: left;
+      }
+      .user {
+        background: linear-gradient(135deg, #00c6ff, #0072ff);
+        color: white;
+        text-align: right;
+        margin-left: auto;
+      }
+      .input-area {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        width: 90%;
+        max-width: 500px;
+      }
+      .input-box {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
+        outline: none;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        font-size: 16px;
+        transition: 0.3s;
+      }
+      .input-box:focus {
+        background: rgba(255, 255, 255, 0.3);
+        box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.4);
+      }
+      .send-btn {
+        background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+        padding: 12px 15px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.3s;
+        font-weight: bold;
+        color: black;
+        text-transform: uppercase;
+        box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.2);
+      }
+      .send-btn:hover {
+        transform: scale(1.1);
+        background: linear-gradient(135deg, #ff758c, #ff7eb3);
+        box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.5);
+      }
+    </style>
+  </head>
+  <body class="flex flex-col items-center justify-center min-h-screen">
+    <h2 class="text-2xl text-white font-bold mb-4">Chat Admin</h2>
+
+    <div id="active-users" class="text-white mb-4">
+      <strong>Users Online:</strong>
+      <ul id="user-list"></ul>
+    </div>
+
+    <select id="receiver" class="p-2 mb-2 rounded">
+      <option value="">Pilih User</option>
+    </select>
+
+    <!-- Tombol Hapus Chat -->
+    <button
+      onclick="deleteChat()"
+      class="send-btn bg-red-500 hover:bg-red-700 text-white"
+    >
+      Hapus Chat
+    </button>
+
+    <div class="chat-box" id="chat-box"></div>
+
+    <div class="input-area flex flex-col w-full max-w-lg">
+      <textarea
+        id="message"
+        class="input-box resize-none min-h-[80px]"
+        placeholder="Tulis pesan..."
+      ></textarea>
+      <button onclick="sendMessage()" class="send-btn mt-2">Kirim</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+    <script>
+      var socket = io();
+      var chatBox = document.getElementById("chat-box");
+      var receiverSelect = document.getElementById("receiver");
+      var nickname = "{{ nickname }}";
+
+      // Update daftar user yang sedang online
+      socket.on("update_active_users", function (users) {
+        var userList = document.getElementById("user-list");
+        userList.innerHTML = "";
+        receiverSelect.innerHTML = '<option value="">Pilih User</option>';
+        users.forEach((user) => {
+          if (user !== nickname) {
+            userList.innerHTML += `<li>${user}</li>`;
+            receiverSelect.innerHTML += `<option value="${user}">${user}</option>`;
+          }
+        });
+      });
+
+      socket.on("chat_message", function (msg) {
+        var div = document.createElement("div");
+        div.classList.add(
+          "message",
+          msg.sender === nickname ? "user" : "admin"
+        );
+        div.innerHTML = `<strong>${msg.sender}:</strong> ${msg.text}`;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll ke bawah
+      });
+
+      function sendMessage() {
+        var message = document.getElementById("message").value;
+        var receiver = receiverSelect.value;
+        if (!message.trim() || !receiver) return;
+
+        socket.emit("chat_message", {
+          sender: nickname,
+          text: message,
+          receiver: receiver,
+        });
+
+        var div = document.createElement("div");
+        div.classList.add("message", "user");
+        div.innerHTML = `<strong>${nickname}:</strong> ${message}`;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        document.getElementById("message").value = "";
+      }
+
+      function deleteChat() {
+        var receiver = document.getElementById("receiver").value;
+        if (!receiver) {
+          alert("Pilih user terlebih dahulu!");
+          return;
+        }
+
+        if (!confirm(`Hapus semua chat dengan ${receiver}?`)) return;
+
+        fetch(`/delete_chat/${receiver}`, {
+          method: "DELETE",
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              alert(data.message);
+              socket.emit("delete_chat", { nickname: receiver });
+            } else {
+              alert("Gagal menghapus chat: " + (data.error || "Unknown error"));
+            }
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+
+      socket.on("chat_deleted", function (data) {
+        var chatBox = document.getElementById("chat-box");
+        var messages = chatBox.getElementsByClassName("message");
+
+        for (var i = messages.length - 1; i >= 0; i--) {
+          if (messages[i].innerText.includes(data.nickname)) {
+            messages[i].remove();
+          }
+        }
+      });
+
+      document
+        .getElementById("receiver")
+        .addEventListener("change", function () {
+          var selectedUser = this.value;
+          var chatBox = document.getElementById("chat-box");
+          chatBox.innerHTML = "";
+          if (!selectedUser) return;
+
+          fetch(`/chat_history/${selectedUser}`)
+            .then((response) => response.json())
+            .then((messages) => {
+              messages.forEach((msg) => {
+                var div = document.createElement("div");
+                div.classList.add(
+                  "message",
+                  msg.sender === "admin001" || msg.sender === "admin212"
+                    ? "admin"
+                    : "user"
+                );
+                div.innerHTML = `<strong>${msg.sender}:</strong> ${msg.text}`;
+                chatBox.appendChild(div);
+              });
+              chatBox.scrollTop = chatBox.scrollHeight;
+            })
+            .catch((error) =>
+              console.error("Error fetching chat history:", error)
+            );
+        });
+    </script>
+  </body>
+</html>

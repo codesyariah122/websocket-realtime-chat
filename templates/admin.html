@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+    <style>
+      body {
+        background: radial-gradient(circle, #1a1a2e, #0f3460);
+        font-family: "Poppins", sans-serif;
+      }
+
+      #emoji-button {
+        width: 32px;
+        height: 32px;
+        line-height: 1;
+      }
+    </style>
+  </head>
+  <body class="flex flex-col items-center justify-center min-h-screen px-4">
+    <audio id="notif-sound" src="/static/sounds/notification.mp3"></audio>
+    <audio id="login-sound" src="/static/sounds/login.mp3"></audio>
+
+    <h2 class="text-2xl text-white font-bold mb-4 text-center">Chat Admin</h2>
+
+    <div id="active-users" class="text-white text-center mb-4 w-full max-w-lg">
+      <strong>Users Online:</strong>
+      <ul id="user-list"></ul>
+    </div>
+
+    <select id="receiver" class="p-2 mb-2 w-full max-w-lg rounded text-sm">
+      <option value="">Pilih User</option>
+    </select>
+
+    <button
+      onclick="deleteChat()"
+      class="send-btn bg-red-500 hover:bg-red-700 text-white w-full max-w-lg py-2 rounded-md text-sm"
+    >
+      Hapus Chat
+    </button>
+
+    <div
+      class="chat-box w-full max-w-lg h-[300px] bg-white bg-opacity-10 backdrop-blur-md rounded-lg p-4 overflow-auto mt-4"
+      id="chat-box"
+    ></div>
+
+    <div class="input-area flex flex-col w-full max-w-lg mt-4">
+      <div class="relative w-full">
+        <button
+          id="emoji-button"
+          class="absolute right-2 top-2 bottom-2 flex items-center justify-center bg-gray-700 text-white p-2 rounded-md text-sm"
+        >
+          😀
+        </button>
+        <textarea
+          id="message"
+          class="input-box w-full resize-none min-h-[80px] p-3 rounded-md bg-white bg-opacity-15 text-white text-sm focus:bg-opacity-30 focus:ring-2 focus:ring-white"
+          placeholder="Tulis pesan..."
+        ></textarea>
+      </div>
+
+      <button
+        onclick="sendMessage()"
+        class="send-btn w-full mt-2 bg-gradient-to-r from-pink-500 to-red-400 hover:from-pink-600 hover:to-red-500 text-white font-bold py-2 rounded-md text-sm"
+      >
+        Kirim
+      </button>
+
+      <button
+        onclick="leaveChat()"
+        class="mt-4 px-6 py-2 mb-36 bg-red-500 text-white rounded-lg hover:bg-red-700 transition"
+      >
+        Leave
+      </button>
+    </div>
+
+    <script>
+      var socket = io();
+      var chatBox = document.getElementById("chat-box");
+      var receiverSelect = document.getElementById("receiver");
+      var nickname = "{{ nickname }}";
+
+      socket.on("update_active_users", function (users) {
+        var userList = document.getElementById("user-list");
+        userList.innerHTML = "";
+        receiverSelect.innerHTML = '<option value="">Pilih User</option>';
+        users.forEach((user) => {
+          if (user !== nickname) {
+            userList.innerHTML += `<li>${user}</li>`;
+            receiverSelect.innerHTML += `<option value="${user}">${user}</option>`;
+          }
+        });
+      });
+
+      socket.on("chat_message", function (msg) {
+        var div = document.createElement("div");
+        div.classList.add(
+          "message",
+          msg.sender === nickname
+            ? "user bg-blue-500 text-white text-right ml-auto"
+            : "admin bg-red-500 text-white"
+        );
+        div.classList.add("p-2", "rounded-md", "mt-2", "max-w-[80%]");
+        div.innerHTML = `<strong>${msg.sender}:</strong> ${msg.text}`;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+
+      function sendMessage() {
+        var message = document.getElementById("message").value;
+        var receiver = receiverSelect.value;
+        if (!message.trim() || !receiver) return;
+
+        socket.emit("chat_message", {
+          sender: nickname,
+          text: message,
+          receiver: receiver,
+        });
+
+        var div = document.createElement("div");
+        div.classList.add(
+          "message",
+          "user",
+          "bg-blue-500",
+          "text-white",
+          "p-2",
+          "rounded-md",
+          "mt-2",
+          "text-right",
+          "ml-auto",
+          "max-w-[80%]"
+        );
+        div.innerHTML = `<strong>${nickname}:</strong> ${message}`;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        document.getElementById("message").value = "";
+      }
+
+      function leaveChat() {
+        fetch("/logout")
+          .then(() => {
+            window.location.href = "/";
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+
+      function deleteChat() {
+        var receiver = document.getElementById("receiver").value;
+        if (!receiver) {
+          alert("Pilih user terlebih dahulu!");
+          return;
+        }
+
+        if (!confirm(`Hapus semua chat dengan ${receiver}?`)) return;
+
+        fetch(`/delete_chat/${receiver}`, {
+          method: "DELETE",
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              alert(data.message);
+              socket.emit("delete_chat", { nickname: receiver });
+            } else {
+              alert("Gagal menghapus chat: " + (data.error || "Unknown error"));
+            }
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+
+      socket.on("chat_deleted", function (data) {
+        var chatBox = document.getElementById("chat-box");
+        chatBox.innerHTML = "";
+      });
+
+      document
+        .getElementById("receiver")
+        .addEventListener("change", function () {
+          var selectedUser = this.value;
+          var chatBox = document.getElementById("chat-box");
+          chatBox.innerHTML = "";
+          if (!selectedUser) return;
+
+          fetch(`/chat_history/${selectedUser}`)
+            .then((response) => response.json())
+            .then((messages) => {
+              messages.forEach((msg) => {
+                var div = document.createElement("div");
+                div.classList.add(
+                  "message",
+                  ...(msg.sender === nickname
+                    ? [
+                        "user",
+                        "bg-blue-500",
+                        "text-white",
+                        "text-right",
+                        "ml-auto",
+                      ]
+                    : ["admin", "bg-red-500", "text-white"])
+                );
+                div.classList.add("p-2", "rounded-md", "mt-2", "max-w-[80%]");
+                div.innerHTML = `<strong>${msg.sender}:</strong> ${msg.text}`;
+                chatBox.appendChild(div);
+              });
+              chatBox.scrollTop = chatBox.scrollHeight;
+            })
+            .catch((error) =>
+              console.error("Error fetching chat history:", error)
+            );
+        });
+    </script>
+
+    <script type="module">
+      import { EmojiButton } from "https://unpkg.com/@joeattardi/emoji-button@4.6.2/dist/index.js";
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const picker = new EmojiButton();
+        const emojiButton = document.getElementById("emoji-button");
+        const messageInput = document.getElementById("message");
+
+        emojiButton.addEventListener("click", () => {
+          picker.togglePicker(emojiButton);
+        });
+
+        picker.on("emoji", (selection) => {
+          messageInput.value += selection.emoji;
+          messageInput.focus();
+        });
+      });
+    </script>
+
+    <script>
+      let notifSound = document.getElementById("notif-sound");
+      socket.off("chat_message");
+      socket.on("chat_message", function (msg) {
+        let div = document.createElement("div");
+        div.classList.add(
+          "message",
+          ...(msg.sender === nickname
+            ? ["user", "bg-blue-500", "text-white", "text-right", "ml-auto"]
+            : ["admin", "bg-red-500", "text-white"])
+        );
+        div.classList.add("p-2", "rounded-md", "mt-2", "max-w-[80%]");
+        div.innerHTML = `<strong>${msg.sender}:</strong> ${msg.text}`;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        if (msg.sender !== nickname) {
+          notifSound.play();
+        }
+      });
+    </script>
+
+    <script>
+      socket.on("user_joined", function (data) {
+        console.log("User joined:", data.nickname);
+
+        let loginSound = document.getElementById("login-sound");
+
+        if (loginSound) {
+          loginSound.play().catch((e) => {
+            console.warn("Autoplay blocked, user interaction required:", e);
+          });
+        }
+
+        let userList = document.getElementById("user-list");
+        if (userList) {
+          let newUser = document.createElement("li");
+          newUser.textContent = data.nickname;
+          userList.appendChild(newUser);
+        }
+      });
+    </script>
+  </body>
+</html>

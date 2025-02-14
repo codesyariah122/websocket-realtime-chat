@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Story Of Puji & Fitri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        background: radial-gradient(circle, #1a1a2e, #0f3460);
+        font-family: "Poppins", sans-serif;
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(15px);
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.2);
+      }
+    </style>
+  </head>
+  <body
+    class="flex flex-col items-center justify-center min-h-screen text-white px-4"
+  >
+    <h2 class="text-2xl sm:text-3xl font-bold text-center mb-6">
+      Selamat datang di cerita kita 🥗🍲
+    </h2>
+
+    <blockquote
+      class="relative px-8 py-6 mb-12 text-sm italic font-semibold text-gray-800 border-l-4 border-pink-500 bg-gray-100 rounded-md shadow-md"
+    >
+      <svg
+        class="absolute left-4 top-2 w-8 h-8 text-pink-300 opacity-50"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M17 10h4V3h-7v7h3v11h4V10zM3 21h4V10H3v11zm4-18H3v7h4V3z"
+        ></path>
+      </svg>
+      <p class="ml-6">
+        "Sebuah dedikasi untuk
+        <strong class="text-pink-600">Fitri Kulsum</strong>, istri saya tercinta
+        ˚˖𓍢ִ໋🌷͙֒✧˚.🎀༘⋆"
+      </p>
+    </blockquote>
+
+    <div class="glass-card w-full max-w-xs sm:max-w-sm md:max-w-md text-center">
+      {% if session['nickname'] %}
+      <p class="mb-4 text-lg">
+        Selamat datang,
+        <span class="font-bold text-blue-300">{{ session['nickname'] }}</span>!
+      </p>
+      <div class="flex flex-col gap-4">
+        <a
+          href="/chat"
+          class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+        >
+          Buka Chat
+        </a>
+        <a
+          href="logout"
+          class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
+        >
+          Logout
+        </a>
+      </div>
+      {% else %}
+      <p class="mb-4 text-lg text-red-300">Anda belum login!</p>
+      <a
+        href="login"
+        class="block bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition"
+      >
+        Login
+      </a>
+      {% endif %}
+    </div>
+  </body>
+</html>

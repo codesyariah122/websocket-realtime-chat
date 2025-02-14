@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        background: radial-gradient(circle, #1a1a2e, #0f3460);
+        font-family: "Poppins", sans-serif;
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(15px);
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.2);
+      }
+    </style>
+  </head>
+  <body
+    class="flex flex-col items-center justify-center min-h-screen text-white px-4"
+  >
+    <h2 class="text-2xl sm:text-3xl font-bold mb-6">Login</h2>
+
+    <div class="glass-card w-full max-w-xs sm:max-w-sm md:max-w-md">
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div id="flash-message" class="text-center mb-4">
+        {% for category, message in messages %}
+        <p class="text-red-400 text-sm">{{ message }}</p>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %}
+
+      <form
+        method="POST"
+        class="flex flex-col gap-4"
+        onsubmit="return validateForm()"
+      >
+        <input
+          type="text"
+          name="nickname"
+          id="nickname"
+          placeholder="Masukkan nickname"
+          class="w-full px-4 py-2 bg-transparent border border-white text-white rounded-md focus:outline-none"
+        />
+        <p
+          id="error-message"
+          class="text-red-400 text-sm text-center hidden"
+        ></p>
+        <button
+          class="w-full bg-gradient-to-r from-blue-500 to-purple-500 py-2 rounded-md hover:opacity-80 transition"
+        >
+          Masuk
+        </button>
+        <p class="text-sm text-center">
+          Belum punya akun?
+          <a href="register" class="text-pink-400">Daftar</a>
+        </p>
+      </form>
+    </div>
+
+    <script>
+      // Hilangkan pesan flash ketika user mulai mengetik
+      document
+        .getElementById("nickname")
+        .addEventListener("input", function () {
+          let flashMessage = document.getElementById("flash-message");
+          if (flashMessage) {
+            flashMessage.style.display = "none";
+          }
+        });
+
+      function validateForm() {
+        let nickname = document.getElementById("nickname").value.trim();
+        let errorMessage = document.getElementById("error-message");
+
+        if (nickname === "") {
+          errorMessage.textContent = "Nickname tidak boleh kosong!";
+          errorMessage.classList.remove("hidden");
+          return false;
+        }
+
+        if (nickname.length < 3) {
+          errorMessage.textContent = "Nickname harus minimal 3 karakter!";
+          errorMessage.classList.remove("hidden");
+          return false;
+        }
+
+        if (!/^[a-zA-Z0-9_]+$/.test(nickname)) {
+          errorMessage.textContent =
+            "Nickname hanya boleh huruf, angka, dan underscore!";
+          errorMessage.classList.remove("hidden");
+          return false;
+        }
+
+        errorMessage.classList.add("hidden");
+        return true;
+      }
+    </script>
+  </body>
+</html>
