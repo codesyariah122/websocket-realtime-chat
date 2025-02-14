@@ -42,6 +42,7 @@ pip install -r requirements.txt
 Aplikasi akan berjalan di http://127.0.0.1:5000/
 🔧 Struktur Direktori
 
+```bash
 /realtime-chat
 │── /static/ # Folder untuk file statis (CSS, JS, dll)
 │── /templates/ # Folder untuk template HTML
@@ -52,14 +53,15 @@ Aplikasi akan berjalan di http://127.0.0.1:5000/
 │── /run.py # Entry point aplikasi
 │── /requirements.txt # Dependencies
 │── /README.md # Dokumentasi
+```
 
 🤝 Kontribusi
 
 Jika ingin berkontribusi, silakan fork repo ini dan buat pull request.
 📧 Kontak
 
-📌 Author: Puji Ermanto
-📩 Email: pujiermanto@gmail.com
+📌 Author: Puji Ermanto  
+📩 Email: pujiermanto@gmail.com  
 <a href='https://ko-fi.com/J3J81AEG3V' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
 ---
