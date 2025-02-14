@@ -46,6 +46,13 @@ pip freeze > requirements.txt
 pip install -r requirements.txt
 ```
 
+### Or fixing error install dependencies
+
+```
+apt update && apt install -y libcairo2 libcairo2-dev pkg-config python3-dev
+pip install --no-cache-dir -r requirements.txt
+```
+
 Aplikasi akan berjalan di http://127.0.0.1:5000/
 🔧 Struktur Direktori
 
