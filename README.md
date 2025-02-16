@@ -51,6 +51,8 @@ pip install -r requirements.txt
 ```
 apt update && apt install -y libcairo2 libcairo2-dev pkg-config python3-dev
 pip install --no-cache-dir -r requirements.txt
+or for any error :
+/usr/bin/python3 -m pip install -r requirements.txt
 ```
 
 Aplikasi akan berjalan di http://127.0.0.1:5000/
