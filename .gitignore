@@ -4,3 +4,4 @@ models/__pycache__
 routes/__pycache__
 sockets/__pycache__
 .env
+instance/*
